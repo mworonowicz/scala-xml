@@ -11,7 +11,7 @@ import cmi.infra.Database
 import rx.lang.scala.Observable
 
 import scala.concurrent.Promise
-import scala.xml.Elem
+import scala.xml.{Elem, NodeSeq}
 
 trait Application {
 
@@ -33,9 +33,11 @@ trait Controller extends Directives {
   def route: Route
 
   implicit class ObservableTranslator[T](obs: Observable[T]) {
-    def toFuture(transform: T  => Elem) = {
+    def toFuture(transform: T => NodeSeq) = {
       val promise = Promise[HttpResponse]
-      obs.subscribe(r => promise.success(HttpResponse(entity = HttpEntity(transform(r).toString).withContentType(`text/xml(UTF-8)`))),
+      obs.subscribe(
+        r =>
+          promise.success(HttpResponse(entity = HttpEntity(transform(r).toString).withContentType(`text/xml(UTF-8)`))),
         error => promise.failure(error),
         () => if (!promise.isCompleted) promise.success(HttpResponse(StatusCodes.NotFound)))
       complete(promise.future)

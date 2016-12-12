@@ -6,11 +6,12 @@ import java.util.{Map => JMap}
 import cats.free.Free
 import com.typesafe.scalalogging.LazyLogging
 import rx.lang.scala.Observable
+import spray.json.JsValue
 
 import scala.collection.JavaConverters._
 
 trait MemoryDatabase extends Database with LazyLogging {
-  private val map = new ConcurrentHashMap[String, JMap[String, Object]]()
+  private val map = new ConcurrentHashMap[String, JsValue]
   private var counters = new ConcurrentHashMap[String, Int]()
 
   override def id(key: String): Observable[String] = {
@@ -28,12 +29,12 @@ trait MemoryDatabase extends Database with LazyLogging {
       .map(Observable.just(_))
       .getOrElse(Observable.empty)
 
-  override def insert(id: String, content: JMap[String, Object]): Observable[DbDocument] =
+  override def insert(id: String, content: JsValue): Observable[DbDocument] =
     Free.pure(map.put(id, content)).map(_ => Observable.just(MemoryDbDocument(id, content))).run
 
   def close: Observable[Boolean] = Observable.just(true)
 }
 
-private case class MemoryDbDocument(id: String, content: JMap[String, Object]) extends DbDocument {
-  override def clone(content: JMap[String, Object]): DbDocument = this.clone(content)
+private case class MemoryDbDocument(id: String, content: JsValue) extends DbDocument {
+  override def clone(content: JsValue): DbDocument = this.clone(content)
 }

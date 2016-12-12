@@ -4,11 +4,15 @@ import com.typesafe.config.ConfigFactory
 import rx.lang.scala.Observable
 import java.util.{Map => JMap}
 
+import spray.json.JsValue
+
+import scala.util.parsing.json.JSONObject
+
 trait Database {
   def config: DbConfig
   def id(key: String): Observable[String]
   def get(id: String): Observable[DbDocument]
-  def insert(id: String, content: JMap[String, Object]): Observable[DbDocument]
+  def insert(id: String, content: JsValue): Observable[DbDocument]
   def close: Observable[Boolean]
 }
 
@@ -29,6 +33,6 @@ trait DbConfig {
 
 trait DbDocument {
   def id: String
-  def content: JMap[String, Object]
-  def clone(content: JMap[String, Object]): DbDocument
+  def content: JsValue
+  def clone(content: JsValue): DbDocument
 }
